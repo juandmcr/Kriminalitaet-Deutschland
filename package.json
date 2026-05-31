@@ -1,5 +1,8 @@
 {
+  "type": "module",
   "dependencies": {
+    "@comunica/query-sparql": "^4.0.0",
+    "@comunica/query-sparql-file": "^5.2.3",
     "d3": "^7.9.0"
   }
 }
