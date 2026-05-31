@@ -1,53 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-<meta charset="UTF-8">
-<title>Checkboxen mit Bestätigung</title>
-<script type="module" src="./main.js"></script>
-<script type="module" src="./button_logic.js"></script>
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Checkboxen mit Bestätigung</title>
+        <script type="module" src="./main.js"></script>
+    </head>
+    <body>
+        <form id="meinFormular">
+            <fieldset>
+                <legend>Armut</legend>
+                <label
+                    ><input type="checkbox" name="Armut" value="alq" />
+                    Arbeitslosenquote bezogen auf alle zivilen Erwerbspersonen
+                    im Jahr 2023 in %</label
+                ><br />
+                <label
+                    ><input type="checkbox" name="Armut" value="schulden" />
+                    Anteil überschuldeter Personen über 18 Jahre an der
+                    Altersgruppe im Jahr 2023 in %</label
+                >
+            </fieldset>
 
-<form id="meinFormular">
+            <fieldset>
+                <legend>Demographie</legend>
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Demographie"
+                        value="bev_ue65"
+                    />
+                    Anteil der 65-Jährigen und Älteren an der Gesamtbevölkerung
+                    im Jahr 2024 in %</label
+                >
+            </fieldset>
 
-    <fieldset>
-        <legend>Armut</legend>
-        <label><input type="checkbox" name="Armut" value="alq"> Arbeitslosenquote bezogen auf alle zivilen Erwerbspersonen im Jahr 2023 in %</label><br>
-        <label><input type="checkbox" name="Armut" value="schulden"> Anteil überschuldeter Personen über 18 Jahre an der Altersgruppe im Jahr 2023 in %</label>
-    </fieldset>
+            <fieldset>
+                <legend>Wirtschaft</legend>
+                <label
+                    ><input type="checkbox" name="Wirtschaft" value="erw_bip" />
+                    Bruttoinlandsprodukt je erwerbstätige Person im Jahr 2023 in
+                    1.000 €</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Wirtschaft"
+                        value="hh_veinK"
+                    />
+                    Verfügbares Einkommen privater Haushalte je Einwohner/-in im
+                    Jahr 2023 in 1.000 €</label
+                >
+            </fieldset>
 
-    <fieldset>
-        <legend>Demographie</legend>
-        <label><input type="checkbox" name="Demographie" value="bev_ue65"> Anteil der 65-Jährigen und Älteren an der Gesamtbevölkerung im Jahr 2024 in %</label>
-    </fieldset>
+            <fieldset>
+                <legend>Migration</legend>
+                <label
+                    ><input type="checkbox" name="Migration" value="bev_ausl" />
+                    Anteil der Ausländer/-innen an der Gesamtbevölkerung im Jahr
+                    2024 in %</label
+                >
+            </fieldset>
 
-    <fieldset>
-        <legend>Wirtschaft</legend>
-        <label><input type="checkbox" name="Wirtschaft" value="erw_bip"> Bruttoinlandsprodukt je erwerbstätige Person im Jahr 2023 in 1.000 €</label><br>
-        <label><input type="checkbox" name="Wirtschaft" value="hh_veinK"> Verfügbares Einkommen privater Haushalte je Einwohner/-in im Jahr 2023 in 1.000 €</label>
-    </fieldset>
+            <fieldset>
+                <legend>Vereinswesen</legend>
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Vereinswesen"
+                        value="mitgl_sportv"
+                    />
+                    Mitglieder in Sportvereinen je 100 Einwohner im Jahr
+                    2023</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Vereinswesen"
+                        value="ew_sportv"
+                    />
+                    Sportvereine je 100.000 Einwohner/-innen im Jahr 2023</label
+                >
+            </fieldset>
 
-    <fieldset>
-        <legend>Migration</legend>
-        <label><input type="checkbox" name="Migration" value="bev_ausl"> Anteil der Ausländer/-innen an der Gesamtbevölkerung im Jahr 2024 in %</label>
-    </fieldset>
+            <br />
 
-    <fieldset>
-        <legend>Vereinswesen</legend>
-        <label><input type="checkbox" name="Vereinswesen" value="mitgl_sportv"> Mitglieder in Sportvereinen je 100 Einwohner im Jahr 2023</label><br>
-        <label><input type="checkbox" name="Vereinswesen" value="ew_sportv"> Sportvereine je 100.000 Einwohner/-innen im Jahr 2023</label>
-    </fieldset>
+            <button type="button" id="bestaetigen">Eingabe bestätigen</button>
+        </form>
 
-    <br>
-
-    <button type="button" id="bestaetigen">
-        Eingabe bestätigen
-    </button>
-
-</form>
-
-<p> Quelle: https://www.deutschlandatlas.bund.de/SharedDocs/Downloads/DE/Deutschlandatlas-Daten.html</p>
-<p> Verwendete Tabellen: KRS1222, KRS1224 </p>
-
-</body>
+        <p>
+            Quelle:
+            https://www.deutschlandatlas.bund.de/SharedDocs/Downloads/DE/Deutschlandatlas-Daten.html
+        </p>
+        <p>Verwendete Tabellen: KRS1222, KRS1224</p>
+    </body>
 </html>

@@ -1,11 +1,11 @@
 export const dataLeft = [
   { city: "Leipzig", count: 15 },
   { city: "Berlin", count: 20 },
-  { city: "Dresden", count: 8 }
+  { city: "Dresden", count: 8 },
 ];
 
 export const dataRight = [
-  { city: "Leipzig", count: 12 },
-  { city: "Berlin", count: 25 },
-  { city: "Dresden", count: 10 }
+  { city: "Frankfurt (Oder), Stadt", count: 19218.62 },
+  { city: "Neumünster, Stadt", count: 18117.78 },
+  { city: "Suhl, Stadt", count: 16968.85 },
 ];
