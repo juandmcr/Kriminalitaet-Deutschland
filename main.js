@@ -73,6 +73,7 @@ function initCharts() {
     // Don't remove everything - just remove the circles and axes
     svg.selectAll("circle").remove();
     svg.selectAll("g").remove();
+    svg.selectAll("path").remove();
 
     // Remove duplicate cities - keep only first occurrence per city
     const uniqueData = [];
@@ -126,6 +127,7 @@ function initCharts() {
       .style("font-size", "14px")
       .call(d3.axisLeft(yScale));
 
+    // Draw data points
     svg
       .selectAll("circle")
       .data(uniqueData)
@@ -135,6 +137,30 @@ function initCharts() {
       .attr("cy", (d) => yScale(d.count))
       .attr("r", 2)
       .attr("fill", "black");
+
+    // Calculate and draw linear regression line using window.d3
+    const regressionData = uniqueData.map((d, i) => [i, d.count]);
+    const regression = window.d3
+      .regressionLinear()
+      .x((d) => d[0])
+      .y((d) => d[1])
+      .domain([0, uniqueData.length - 1]);
+
+    const regressionLine = regression(regressionData);
+
+    // Create line generator for regression
+    const lineGenerator = d3
+      .line()
+      .x((d, i) => xScale(xDomain[Math.round(d[0])]))
+      .y((d) => yScale(d[1]));
+
+    svg
+      .append("path")
+      .datum(regressionLine)
+      .attr("d", lineGenerator)
+      .attr("stroke", "red")
+      .attr("stroke-width", 2)
+      .attr("fill", "none");
   }
 
   // Draw initial plots
