@@ -50,8 +50,29 @@ function initCharts() {
     .attr("height", height)
     .style("border", "2px solid black");
 
-  function drawScatter(svg, data, useStraftAxis = false) {
-    svg.selectAll("*").remove();
+  // Create title elements first
+  const graphTitleLeft = svgLeft
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 25)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("Keine Auswahl");
+
+  const graphTitleRight = svgRight
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 25)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("Straftaten pro 100.000 Einwohner");
+
+  function drawScatter(svg, data, useStraftAxis = false, isLeftPlot = false) {
+    // Don't remove everything - just remove the circles and axes
+    svg.selectAll("circle").remove();
+    svg.selectAll("g").remove();
 
     // Remove duplicate cities - keep only first occurrence per city
     const uniqueData = [];
@@ -65,13 +86,9 @@ function initCharts() {
     }
 
     if (!uniqueData || uniqueData.length === 0) {
-      svg
-        .append("text")
-        .attr("x", width / 2)
-        .attr("y", height / 2)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .text("No data available");
+      if (isLeftPlot) {
+        graphTitleLeft.text("Keine Auswahl");
+      }
       return;
     }
 
@@ -120,29 +137,9 @@ function initCharts() {
       .attr("fill", "black");
   }
 
-  // Diagramme zeichnen
-  drawScatter(svgLeft, dataLeft);
-  drawScatter(svgRight, dataRight);
-
-  // Linker Titel (dynamisch)
-  const graphTitleLeft = svgLeft
-    .append("text")
-    .attr("x", width / 2)
-    .attr("y", 25)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text("Keine Auswahl");
-
-  // Rechter Titel (fest)
-  svgRight
-    .append("text")
-    .attr("x", width / 2)
-    .attr("y", 25)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text("Straftaten pro 100.000 Einwohner");
+  // Draw initial plots
+  drawScatter(svgLeft, dataLeft, false, true);
+  drawScatter(svgRight, dataRight, false, false);
 
   // Make checkboxes mutually exclusive
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -165,7 +162,7 @@ function initCharts() {
     if (!checked) {
       graphTitleLeft.text("Keine Auswahl");
       dataLeft = [];
-      drawScatter(svgLeft, dataLeft, true);
+      drawScatter(svgLeft, dataLeft, true, true);
       return;
     }
 
@@ -192,7 +189,7 @@ function initCharts() {
     }
 
     graphTitleLeft.text(`${categoryName}: ${label}`);
-    drawScatter(svgLeft, dataLeft, true);
+    drawScatter(svgLeft, dataLeft, true, true);
   });
 }
 
