@@ -28,8 +28,8 @@ async function loadData() {
 }
 
 function initCharts() {
-  const width = 1400;
-  const height = 700;
+  const width = 900;
+  const height = 525;
   const margin = 100;
 
   const container = d3
@@ -53,7 +53,18 @@ function initCharts() {
   function drawScatter(svg, data) {
     svg.selectAll("*").remove();
 
-    if (!data || data.length === 0) {
+    // Remove duplicate cities - keep only first occurrence per city
+    const uniqueData = [];
+    const seen = new Set();
+
+    for (const point of data) {
+      if (!seen.has(point.city)) {
+        seen.add(point.city);
+        uniqueData.push(point);
+      }
+    }
+
+    if (!uniqueData || uniqueData.length === 0) {
       svg
         .append("text")
         .attr("x", width / 2)
@@ -66,13 +77,14 @@ function initCharts() {
 
     const xScale = d3
       .scalePoint()
-      .domain(data.map((d) => d.city))
+      .domain(uniqueData.map((d) => d.city))
       .range([margin + 50, width - margin - 50]);
 
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.count)])
+      .domain([0, d3.max(uniqueData, (d) => d.count)])
       .range([height - margin, margin + 50]);
+
 
     svg
       .append("g")
@@ -90,15 +102,20 @@ function initCharts() {
 
     svg
       .selectAll("circle")
-      .data(data)
+      .data(uniqueData)
       .enter()
       .append("circle")
       .attr("cx", (d) => xScale(d.city))
       .attr("cy", (d) => yScale(d.count))
-      .attr("r", 1)
+      .attr("r", 2)
       .attr("fill", "black");
   }
 
+  // Diagramme zeichnen
+  drawScatter(svgLeft, dataLeft);
+  drawScatter(svgRight, dataRight);
+
+  // Linker Titel (dynamisch)
   const graphTitleLeft = svgLeft
     .append("text")
     .attr("x", width / 2)
@@ -108,6 +125,7 @@ function initCharts() {
     .style("font-weight", "bold")
     .text("Keine Auswahl");
 
+  // Rechter Titel (fest)
   svgRight
     .append("text")
     .attr("x", width / 2)
@@ -117,17 +135,20 @@ function initCharts() {
     .style("font-weight", "bold")
     .text("Straftaten pro 100.000 Einwohner");
 
-  drawScatter(svgLeft, dataLeft);
-  drawScatter(svgRight, dataRight);
-
   document.getElementById("bestaetigen").addEventListener("click", () => {
-    const checked = document.querySelectorAll('input[type="checkbox"]:checked');
+    const checked = document.querySelectorAll(
+      'input[type="checkbox"]:checked'
+    );
 
     const auswahl = Array.from(checked)
       .map((cb) => `${cb.name}: ${cb.value}`)
       .join(", ");
 
-    graphTitleLeft.text(auswahl.length > 0 ? auswahl : "Keine Auswahl");
+    graphTitleLeft.text(
+      auswahl.length > 0
+        ? auswahl
+        : "Keine Auswahl"
+    );
   });
 }
 

@@ -56,8 +56,7 @@ app.get("/api/top-cities", async (req, res) => {
         });
       }
     }
-
-    console.log("Data returned:", data);
+    
     res.json(data);
   } catch (error) {
     console.error("Query error:", error.message);
