@@ -2,7 +2,13 @@ import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 let dataLeft = [];
 let dataRight = [];
-let straftSortedCities = []; // Cities sorted by straft for left plot X axis
+let straftSortedCities = [];
+let currentRegressionType = "linear";
+
+// Dimensiones fijas para el viewBox
+const FIXED_WIDTH = 900;
+const FIXED_HEIGHT = 525;
+const MARGIN = 100;
 
 async function loadData() {
   try {
@@ -11,11 +17,8 @@ async function loadData() {
 
     if (response.ok && Array.isArray(json)) {
       dataRight = json;
-      // Extract cities in order from right plot (sorted by straft)
       straftSortedCities = json.map((d) => d.city);
-      console.log("Data loaded:", dataRight);
     } else {
-      console.error("API error:", json);
       dataRight = [];
       straftSortedCities = [];
     }
@@ -27,107 +30,177 @@ async function loadData() {
   initCharts();
 }
 
+function getRegression(regressionType, data) {
+  try {
+    let regression;
+
+    switch (regressionType) {
+      case "linear":
+        regression = window.d3.regressionLinear();
+        break;
+      case "exponential":
+        regression = window.d3.regressionExp();
+        break;
+      case "logarithmic":
+        regression = window.d3.regressionLog();
+        break;
+      case "quadratic":
+        regression = window.d3.regressionQuad();
+        break;
+      case "polynomial":
+        regression = window.d3.regressionPoly().order(3);
+        break;
+      case "powerlaw":
+        regression = window.d3.regressionPow();
+        break;
+      case "loess":
+        regression = window.d3.regressionLoess();
+        break;
+      default:
+        regression = window.d3.regressionLinear();
+    }
+
+    regression.x((d) => d[0]).y((d) => d[1]);
+
+    if (regressionType === "logarithmic" || regressionType === "powerlaw") {
+      regression.domain([1, data.length]);
+    } else {
+      regression.domain([0, data.length - 1]);
+    }
+
+    return regression(data);
+  } catch (error) {
+    console.warn(`Regression ${regressionType} failed, using linear`);
+    return window.d3
+      .regressionLinear()
+      .x((d) => d[0])
+      .y((d) => d[1])
+      .domain([0, data.length - 1])(data);
+  }
+}
+
+function deduplicateCities(data) {
+  const uniqueData = [];
+  const seen = new Set();
+
+  for (const point of data) {
+    if (!seen.has(point.city)) {
+      seen.add(point.city);
+      uniqueData.push(point);
+    }
+  }
+  return uniqueData;
+}
+
 function initCharts() {
-  const width = 900;
-  const height = 525;
-  const margin = 100;
+  const isMobile = window.innerWidth <= 768;
 
   const container = d3
     .select("body")
     .append("div")
-    .style("display", "flex")
-    .style("gap", "20px");
+    .attr("id", "chartsContainer");
 
+  // SVG izquierdo con viewBox responsivo
   const svgLeft = container
     .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .style("border", "2px solid black");
+    .attr("viewBox", `0 0 ${FIXED_WIDTH} ${FIXED_HEIGHT}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("border", "2px solid black")
+    .style("width", "100%")
+    .style("height", "auto");
 
+  // SVG derecho
   const svgRight = container
     .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .style("border", "2px solid black");
+    .attr("viewBox", `0 0 ${FIXED_WIDTH} ${FIXED_HEIGHT}`)
+    .attr("preserveAspectRatio", "xMidYMid meet")
+    .style("border", "2px solid black")
+    .style("width", "100%")
+    .style("height", "auto");
 
-  // Create title elements first
+  // Título izquierdo
   const graphTitleLeft = svgLeft
     .append("text")
-    .attr("x", width / 2)
+    .attr("x", FIXED_WIDTH / 2)
     .attr("y", 25)
     .attr("text-anchor", "middle")
-    .style("font-size", "16px")
+    .style("font-size", isMobile ? "14px" : "16px")
     .style("font-weight", "bold")
     .text("Keine Auswahl");
 
-  const graphTitleRight = svgRight
+  // Título derecho
+  svgRight
     .append("text")
-    .attr("x", width / 2)
+    .attr("x", FIXED_WIDTH / 2)
     .attr("y", 25)
     .attr("text-anchor", "middle")
-    .style("font-size", "16px")
+    .style("font-size", isMobile ? "14px" : "16px")
     .style("font-weight", "bold")
-    .text("Straftaten pro 100.000 Einwohner");
+    .text("Straftaten pro 100.000 Einwohner (2022)");
 
+  svgRight
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", FIXED_HEIGHT - MARGIN + 35)
+    .attr("text-anchor", "middle")
+    .style("font-size", isMobile ? "10px" : "12px")
+    .style("fill", "#333")
+    .text("400 Kreise/Kreisfreie Städte (Aufsteigend sortiert nach Straftaten)");
+
+  svgLeft
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", FIXED_HEIGHT - MARGIN + 35)
+    .attr("text-anchor", "middle")
+    .style("font-size", isMobile ? "10px" : "12px")
+    .style("fill", "#333")
+    .text("400 Kreise/Kreisfreie Städte (Aufsteigend sortiert nach Straftaten)");
+
+  // Función de dibujo (usa dimensiones fijas)
   function drawScatter(svg, data, useStraftAxis = false, isLeftPlot = false) {
-    // Don't remove everything - just remove the circles and axes
     svg.selectAll("circle").remove();
     svg.selectAll("g").remove();
     svg.selectAll("path").remove();
 
-    // Remove duplicate cities - keep only first occurrence per city
-    const uniqueData = [];
-    const seen = new Set();
-
-    for (const point of data) {
-      if (!seen.has(point.city)) {
-        seen.add(point.city);
-        uniqueData.push(point);
-      }
-    }
+    const uniqueData = deduplicateCities(data);
 
     if (!uniqueData || uniqueData.length === 0) {
-      if (isLeftPlot) {
-        graphTitleLeft.text("Keine Auswahl");
-      }
+      if (isLeftPlot) graphTitleLeft.text("Keine Auswahl");
       return;
     }
 
-    // Determine X axis domain
-    let xDomain;
-    if (useStraftAxis && straftSortedCities.length > 0) {
-      // Use the straft-sorted cities for left plot
-      xDomain = straftSortedCities;
-    } else {
-      // Use data's own city order
-      xDomain = uniqueData.map((d) => d.city);
-    }
+    const xDomain =
+      useStraftAxis && straftSortedCities.length > 0
+        ? straftSortedCities
+        : uniqueData.map((d) => d.city);
 
     const xScale = d3
       .scalePoint()
       .domain(xDomain)
-      .range([margin + 50, width - margin - 50]);
+      .range([MARGIN + 30, FIXED_WIDTH - MARGIN - 30]);
 
     const yScale = d3
       .scaleLinear()
       .domain([0, d3.max(uniqueData, (d) => d.count)])
-      .range([height - margin, margin + 50]);
+      .range([FIXED_HEIGHT - MARGIN, MARGIN + 30]);
 
+    // Eje X (sin etiquetas)
     svg
       .append("g")
-      .attr("transform", `translate(0,${height - margin})`)
-      .style("font-size", "12px")
+      .attr("transform", `translate(0,${FIXED_HEIGHT - MARGIN})`)
+      .style("font-size", isMobile ? "10px" : "12px")
       .call(d3.axisBottom(xScale).tickFormat(""))
       .selectAll("text")
       .style("display", "none");
 
+    // Eje Y
     svg
       .append("g")
-      .attr("transform", `translate(${margin},0)`)
-      .style("font-size", "14px")
+      .attr("transform", `translate(${MARGIN},0)`)
+      .style("font-size", isMobile ? "10px" : "14px")
       .call(d3.axisLeft(yScale));
 
-    // Draw data points
+    // Círculos
     svg
       .selectAll("circle")
       .data(uniqueData)
@@ -135,23 +208,29 @@ function initCharts() {
       .append("circle")
       .attr("cx", (d) => xScale(d.city))
       .attr("cy", (d) => yScale(d.count))
-      .attr("r", 2)
+      .attr("r", isMobile ? 1.5 : 2)
       .attr("fill", "black");
 
-    // Calculate and draw linear regression line using window.d3
-    const regressionData = uniqueData.map((d, i) => [i, d.count]);
-    const regression = window.d3
-      .regressionLinear()
-      .x((d) => d[0])
-      .y((d) => d[1])
-      .domain([0, uniqueData.length - 1]);
+    // Regresión
+    const regressionData = uniqueData.map((d, i) => {
+      const xValue =
+        currentRegressionType === "logarithmic" || currentRegressionType === "powerlaw"
+          ? i + 1
+          : i;
+      return [xValue, d.count];
+    });
 
-    const regressionLine = regression(regressionData);
+    const regressionLine = getRegression(currentRegressionType, regressionData);
 
-    // Create line generator for regression
     const lineGenerator = d3
       .line()
-      .x((d, i) => xScale(xDomain[Math.round(d[0])]))
+      .x((d) => {
+        let index = d[0];
+        if (currentRegressionType === "logarithmic" || currentRegressionType === "powerlaw") {
+          index = Math.max(0, index - 1);
+        }
+        return xScale(xDomain[Math.round(index)]);
+      })
       .y((d) => yScale(d[1]));
 
     svg
@@ -163,25 +242,29 @@ function initCharts() {
       .attr("fill", "none");
   }
 
-  // Draw initial plots
   drawScatter(svgLeft, dataLeft, false, true);
   drawScatter(svgRight, dataRight, false, false);
 
-  // Make checkboxes mutually exclusive
+  // Comportamiento de checkboxes (exclusión mutua)
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach((checkbox) => {
     checkbox.addEventListener("change", (e) => {
       if (e.target.checked) {
-        // Uncheck all other checkboxes
         checkboxes.forEach((cb) => {
-          if (cb !== e.target) {
-            cb.checked = false;
-          }
+          if (cb !== e.target) cb.checked = false;
         });
       }
     });
   });
 
+  // Cambio de tipo de regresión
+  document.getElementById("regressionType").addEventListener("change", (e) => {
+    currentRegressionType = e.target.value;
+    drawScatter(svgLeft, dataLeft, true, true);
+    drawScatter(svgRight, dataRight, false, false);
+  });
+
+  // Botón de confirmación
   document.getElementById("bestaetigen").addEventListener("click", async () => {
     const checked = document.querySelector('input[type="checkbox"]:checked');
 
@@ -197,20 +280,16 @@ function initCharts() {
     const label = checked.parentElement.textContent.trim();
 
     try {
-      const response = await fetch(
-        `/api/top-cities?indicator=${encodeURIComponent(indicator)}`,
-      );
+      const response = await fetch(`/api/top-cities?indicator=${encodeURIComponent(indicator)}`);
       const json = await response.json();
 
       if (response.ok && Array.isArray(json)) {
         dataLeft = json;
-        console.log("Left data loaded:", dataLeft);
       } else {
-        console.error("API error:", json);
         dataLeft = [];
       }
     } catch (error) {
-      console.error("Error loading left data:", error);
+      console.error("Error loading data:", error);
       dataLeft = [];
     }
 

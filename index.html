@@ -2,11 +2,67 @@
 <html lang="de">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Checkboxen mit Bestätigung</title>
         <script src="https://unpkg.com/d3-regression@1.3.10/dist/d3-regression.min.js"></script>
         <script type="module" src="./main.js"></script>
+        <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+    }
+    #regressionControl {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+    }
+    #regressionControl label {
+        margin-right: 15px;
+    }
+    #regressionControl select {
+        padding: 5px;
+        font-size: 14px;
+    }
+    #chartsContainer {
+        display: flex;
+        gap: 20px;
+    }
+    @media (max-width: 768px) {
+        #chartsContainer {
+            flex-direction: column;
+            gap: 20px;
+        }
+        svg {
+            width: 100% !important;
+            height: auto !important;
+        }
+    }
+
+    /* NUEVAS REGLAS (solo para viewBox) */
+    #chartsContainer svg {
+        width: 100% !important;
+        height: auto !important;
+        max-width: 100%;
+        display: block;
+    }
+</style>
     </head>
     <body>
+        <div id="regressionControl">
+            <label for="regressionType">Regression Type:</label>
+            <select id="regressionType">
+                <option value="linear">Linear</option>
+                <option value="exponential">Exponential</option>
+                <option value="logarithmic">Logarithmic</option>
+                <option value="quadratic">Quadratic</option>
+                <option value="polynomial">Polynomial</option>
+                <option value="powerlaw">Power Law</option>
+                <option value="loess">LOESS</option>
+            </select>
+        </div>
+
         <form id="meinFormular">
             <fieldset>
                 <legend>Armut</legend>
@@ -113,3 +169,4 @@
         <p>Verwendete Tabellen: KRS1222, KRS1224</p>
     </body>
 </html>
+
