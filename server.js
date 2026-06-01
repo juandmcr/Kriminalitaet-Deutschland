@@ -12,16 +12,18 @@ app.use(express.json());
 
 app.get("/api/top-cities", async (req, res) => {
   try {
+    const indicator = req.query.indicator || "straft";
+
     const result = await engine.query(
       `
       PREFIX ind: <https://gitlab.dit.htwk-leipzig.de/results-sw/2026/stadt_kriminalitaet/indikator/>
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-      SELECT ?kreisname ?straft WHERE {
-        ?kreis ind:straft ?straft .
+      SELECT ?kreisname ?value WHERE {
+        ?kreis ind:${indicator} ?value .
         ?kreis rdfs:label ?kreisname .
       }
-      ORDER BY ASC(?straft)
+      ORDER BY ASC(?value)
     `,
       { sources: ["daten_indikatoren.nt"] },
     );
@@ -36,27 +38,31 @@ app.get("/api/top-cities", async (req, res) => {
         const kreisname = binding.get(
           keys.find((k) => k.value === "kreisname"),
         );
-        const straft = binding.get(keys.find((k) => k.value === "straft"));
+        const value = binding.get(keys.find((k) => k.value === "value"));
 
-        if (!kreisname || !straft) {
+        if (!kreisname || !value) {
           continue;
         }
 
         const kreisnameStr = kreisname.value || "";
-        const straftStr = straft.value || "0";
+        const valueStr = value.value || "0";
 
         const kreisMatch = kreisnameStr.match(/^"([^"]+)"/);
         const city = kreisMatch ? kreisMatch[1] : kreisnameStr;
 
-        const straftNum = parseFloat(straftStr);
+        const valueNum = parseFloat(valueStr);
+
+        if (isNaN(valueNum)) {
+          continue;
+        }
 
         data.push({
           city,
-          count: straftNum,
+          count: valueNum,
         });
       }
     }
-    
+
     res.json(data);
   } catch (error) {
     console.error("Query error:", error.message);

@@ -1,12 +1,8 @@
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
-let dataLeft = [
-  { city: "Leipzig", count: 15 },
-  { city: "Berlin", count: 20 },
-  { city: "Dresden", count: 8 },
-];
-
+let dataLeft = [];
 let dataRight = [];
+let straftSortedCities = []; // Cities sorted by straft for left plot X axis
 
 async function loadData() {
   try {
@@ -15,14 +11,18 @@ async function loadData() {
 
     if (response.ok && Array.isArray(json)) {
       dataRight = json;
+      // Extract cities in order from right plot (sorted by straft)
+      straftSortedCities = json.map((d) => d.city);
       console.log("Data loaded:", dataRight);
     } else {
       console.error("API error:", json);
       dataRight = [];
+      straftSortedCities = [];
     }
   } catch (error) {
     console.error("Error loading data:", error);
     dataRight = [];
+    straftSortedCities = [];
   }
   initCharts();
 }
@@ -50,7 +50,7 @@ function initCharts() {
     .attr("height", height)
     .style("border", "2px solid black");
 
-  function drawScatter(svg, data) {
+  function drawScatter(svg, data, useStraftAxis = false) {
     svg.selectAll("*").remove();
 
     // Remove duplicate cities - keep only first occurrence per city
@@ -75,16 +75,25 @@ function initCharts() {
       return;
     }
 
+    // Determine X axis domain
+    let xDomain;
+    if (useStraftAxis && straftSortedCities.length > 0) {
+      // Use the straft-sorted cities for left plot
+      xDomain = straftSortedCities;
+    } else {
+      // Use data's own city order
+      xDomain = uniqueData.map((d) => d.city);
+    }
+
     const xScale = d3
       .scalePoint()
-      .domain(uniqueData.map((d) => d.city))
+      .domain(xDomain)
       .range([margin + 50, width - margin - 50]);
 
     const yScale = d3
       .scaleLinear()
       .domain([0, d3.max(uniqueData, (d) => d.count)])
       .range([height - margin, margin + 50]);
-
 
     svg
       .append("g")
@@ -135,20 +144,55 @@ function initCharts() {
     .style("font-weight", "bold")
     .text("Straftaten pro 100.000 Einwohner");
 
-  document.getElementById("bestaetigen").addEventListener("click", () => {
-    const checked = document.querySelectorAll(
-      'input[type="checkbox"]:checked'
-    );
+  // Make checkboxes mutually exclusive
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", (e) => {
+      if (e.target.checked) {
+        // Uncheck all other checkboxes
+        checkboxes.forEach((cb) => {
+          if (cb !== e.target) {
+            cb.checked = false;
+          }
+        });
+      }
+    });
+  });
 
-    const auswahl = Array.from(checked)
-      .map((cb) => `${cb.name}: ${cb.value}`)
-      .join(", ");
+  document.getElementById("bestaetigen").addEventListener("click", async () => {
+    const checked = document.querySelector('input[type="checkbox"]:checked');
 
-    graphTitleLeft.text(
-      auswahl.length > 0
-        ? auswahl
-        : "Keine Auswahl"
-    );
+    if (!checked) {
+      graphTitleLeft.text("Keine Auswahl");
+      dataLeft = [];
+      drawScatter(svgLeft, dataLeft, true);
+      return;
+    }
+
+    const indicator = checked.value;
+    const categoryName = checked.name;
+    const label = checked.parentElement.textContent.trim();
+
+    try {
+      const response = await fetch(
+        `/api/top-cities?indicator=${encodeURIComponent(indicator)}`,
+      );
+      const json = await response.json();
+
+      if (response.ok && Array.isArray(json)) {
+        dataLeft = json;
+        console.log("Left data loaded:", dataLeft);
+      } else {
+        console.error("API error:", json);
+        dataLeft = [];
+      }
+    } catch (error) {
+      console.error("Error loading left data:", error);
+      dataLeft = [];
+    }
+
+    graphTitleLeft.text(`${categoryName}: ${label}`);
+    drawScatter(svgLeft, dataLeft, true);
   });
 }
 
