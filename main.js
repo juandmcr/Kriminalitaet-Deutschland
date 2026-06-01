@@ -15,7 +15,7 @@ const MARGIN = 100;
 // ---------- Hilfsfunktionen ----------
 function deduplicateCities(data) {
   const seen = new Set();
-  return data.filter(point => {
+  return data.filter((point) => {
     if (seen.has(point.city)) return false;
     seen.add(point.city);
     return true;
@@ -26,23 +26,43 @@ function getRegression(regressionType, data) {
   try {
     let regression;
     switch (regressionType) {
-      case "linear": regression = window.d3.regressionLinear(); break;
-      case "exponential": regression = window.d3.regressionExp(); break;
-      case "logarithmic": regression = window.d3.regressionLog(); break;
-      case "quadratic": regression = window.d3.regressionQuad(); break;
-      case "polynomial": regression = window.d3.regressionPoly().order(3); break;
-      case "powerlaw": regression = window.d3.regressionPow(); break;
-      case "loess": regression = window.d3.regressionLoess(); break;
-      default: regression = window.d3.regressionLinear();
+      case "linear":
+        regression = window.d3.regressionLinear();
+        break;
+      case "exponential":
+        regression = window.d3.regressionExp();
+        break;
+      case "logarithmic":
+        regression = window.d3.regressionLog();
+        break;
+      case "quadratic":
+        regression = window.d3.regressionQuad();
+        break;
+      case "polynomial":
+        regression = window.d3.regressionPoly().order(3);
+        break;
+      case "powerlaw":
+        regression = window.d3.regressionPow();
+        break;
+      case "loess":
+        regression = window.d3.regressionLoess();
+        break;
+      default:
+        regression = window.d3.regressionLinear();
     }
-    regression.x(d => d[0]).y(d => d[1]);
-    const domainStart = (regressionType === "logarithmic" || regressionType === "powerlaw") ? 1 : 0;
+    regression.x((d) => d[0]).y((d) => d[1]);
+    const domainStart =
+      regressionType === "logarithmic" || regressionType === "powerlaw" ? 1 : 0;
     regression.domain([domainStart, data.length - 1]);
     return regression(data);
   } catch (error) {
-    console.warn(`Regression ${regressionType} fehlgeschlagen, verwende linear`);
-    return window.d3.regressionLinear()
-      .x(d => d[0]).y(d => d[1])
+    console.warn(
+      `Regression ${regressionType} fehlgeschlagen, verwende linear`,
+    );
+    return window.d3
+      .regressionLinear()
+      .x((d) => d[0])
+      .y((d) => d[1])
       .domain([0, data.length - 1])(data);
   }
 }
@@ -81,8 +101,8 @@ async function fetchIndicatorData(indicator) {
     const stream = await result.execute();
     for await (const binding of stream) {
       const keys = Array.from(binding.keys());
-      const kreisname = binding.get(keys.find(k => k.value === "kreisname"));
-      const value = binding.get(keys.find(k => k.value === "value"));
+      const kreisname = binding.get(keys.find((k) => k.value === "kreisname"));
+      const value = binding.get(keys.find((k) => k.value === "value"));
       if (!kreisname || !value) continue;
       let kreisnameStr = kreisname.value || "";
       const valueStr = value.value || "0";
@@ -106,7 +126,7 @@ function renderFullTable(containerId, data) {
   }
   let html = `<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 12px;">
     <thead><tr><th>Kreis / Stadt</th><th>Wert</th></tr></thead><tbody>`;
-  data.forEach(d => {
+  data.forEach((d) => {
     html += `<tr><td>${d.city}</td><td>${d.count.toFixed(2)}</td></tr>`;
   });
   html += `</tbody></table>`;
@@ -126,11 +146,11 @@ function renderExtremesTable(containerId, data, title) {
   let html = `<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 12px;">`;
   html += `<thead><tr><th>Kreis / Stadt</th><th>Wert</th></tr></thead><tbody>`;
   html += `<tr><td colspan="2"><strong>Niedrigste 10</strong></td></tr>`;
-  topLow.forEach(d => {
+  topLow.forEach((d) => {
     html += `<tr><td>${d.city}</td><td>${d.count.toFixed(2)}</td></tr>`;
   });
   html += `<tr><td colspan="2"><strong>Höchste 10</strong></td></tr>`;
-  topHigh.forEach(d => {
+  topHigh.forEach((d) => {
     html += `<tr><td>${d.city}</td><td>${d.count.toFixed(2)}</td></tr>`;
   });
   html += `</tbody></table>`;
@@ -140,12 +160,13 @@ function renderExtremesTable(containerId, data, title) {
 // ---------- Daten initial laden ----------
 async function loadData() {
   try {
-    if (typeof Comunica === "undefined") throw new Error("Comunica nicht geladen");
+    if (typeof Comunica === "undefined")
+      throw new Error("Comunica nicht geladen");
     if (typeof N3 === "undefined") throw new Error("N3 nicht geladen");
     sparqlEngine = new Comunica.QueryEngine();
     rdfStore = await loadRdfStore();
     dataRight = await fetchIndicatorData("straft");
-    straftSortedCities = dataRight.map(d => d.city);
+    straftSortedCities = dataRight.map((d) => d.city);
     // Rechte Tabelle mit ALLEN Straftaten-Werten (scrollbar)
     renderFullTable("straftTable", dataRight);
   } catch (error) {
@@ -157,7 +178,13 @@ async function loadData() {
 }
 
 // ---------- Zeichnen der Scatterplots (unverändert) ----------
-function drawScatter(svg, data, useStraftAxis = false, isLeftPlot = false, graphTitleLeft = null) {
+function drawScatter(
+  svg,
+  data,
+  useStraftAxis = false,
+  isLeftPlot = false,
+  graphTitleLeft = null,
+) {
   svg.selectAll("circle").remove();
   svg.selectAll("g").remove();
   svg.selectAll("path").remove();
@@ -168,55 +195,72 @@ function drawScatter(svg, data, useStraftAxis = false, isLeftPlot = false, graph
     return;
   }
 
-  const xDomain = (useStraftAxis && straftSortedCities.length)
-    ? straftSortedCities
-    : uniqueData.map(d => d.city);
+  const xDomain =
+    useStraftAxis && straftSortedCities.length
+      ? straftSortedCities
+      : uniqueData.map((d) => d.city);
 
-  const xScale = d3.scalePoint()
+  const xScale = d3
+    .scalePoint()
     .domain(xDomain)
     .range([MARGIN + 30, FIXED_WIDTH - MARGIN - 30]);
 
-  const yScale = d3.scaleLinear()
-    .domain([0, d3.max(uniqueData, d => d.count)])
+  const yScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(uniqueData, (d) => d.count)])
     .range([FIXED_HEIGHT - MARGIN, MARGIN + 30]);
 
   const isMobile = window.innerWidth <= 768;
   const axisFontSize = isMobile ? "10px" : "12px";
 
-  svg.append("g")
+  svg
+    .append("g")
     .attr("transform", `translate(0,${FIXED_HEIGHT - MARGIN})`)
     .style("font-size", axisFontSize)
     .call(d3.axisBottom(xScale).tickFormat(""))
-    .selectAll("text").style("display", "none");
+    .selectAll("text")
+    .style("display", "none");
 
-  svg.append("g")
+  svg
+    .append("g")
     .attr("transform", `translate(${MARGIN},0)`)
     .style("font-size", isMobile ? "10px" : "14px")
     .call(d3.axisLeft(yScale));
 
-  svg.selectAll("circle")
+  svg
+    .selectAll("circle")
     .data(uniqueData)
     .enter()
     .append("circle")
-    .attr("cx", d => xScale(d.city))
-    .attr("cy", d => yScale(d.count))
+    .attr("cx", (d) => xScale(d.city))
+    .attr("cy", (d) => yScale(d.count))
     .attr("r", isMobile ? 1.5 : 2)
     .attr("fill", "black");
 
   const regressionData = uniqueData.map((d, i) => {
-    const xVal = (currentRegressionType === "logarithmic" || currentRegressionType === "powerlaw") ? i + 1 : i;
+    const xVal =
+      currentRegressionType === "logarithmic" ||
+      currentRegressionType === "powerlaw"
+        ? i + 1
+        : i;
     return [xVal, d.count];
   });
   const regressionLine = getRegression(currentRegressionType, regressionData);
-  const lineGen = d3.line()
-    .x(d => {
+  const lineGen = d3
+    .line()
+    .x((d) => {
       let idx = d[0];
-      if (currentRegressionType === "logarithmic" || currentRegressionType === "powerlaw") idx = Math.max(0, idx - 1);
+      if (
+        currentRegressionType === "logarithmic" ||
+        currentRegressionType === "powerlaw"
+      )
+        idx = Math.max(0, idx - 1);
       return xScale(xDomain[Math.round(idx)]);
     })
-    .y(d => yScale(d[1]));
+    .y((d) => yScale(d[1]));
 
-  svg.append("path")
+  svg
+    .append("path")
     .datum(regressionLine)
     .attr("d", lineGen)
     .attr("stroke", "red")
@@ -230,43 +274,53 @@ function initCharts() {
   const container = d3.select("body").select("#chartsContainer");
   if (container.empty()) return;
 
-  const svgLeft = container.append("svg")
+  const svgLeft = container
+    .append("svg")
     .attr("viewBox", `0 0 ${FIXED_WIDTH} ${FIXED_HEIGHT}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .style("border", "2px solid black")
     .style("width", "100%")
     .style("height", "auto");
 
-  const svgRight = container.append("svg")
+  const svgRight = container
+    .append("svg")
     .attr("viewBox", `0 0 ${FIXED_WIDTH} ${FIXED_HEIGHT}`)
     .attr("preserveAspectRatio", "xMidYMid meet")
     .style("border", "2px solid black")
     .style("width", "100%")
     .style("height", "auto");
 
-  const graphTitleLeft = svgLeft.append("text")
-    .attr("x", FIXED_WIDTH / 2).attr("y", 25)
+  const graphTitleLeft = svgLeft
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", 25)
     .attr("text-anchor", "middle")
     .style("font-size", isMobile ? "14px" : "16px")
     .style("font-weight", "bold")
     .text("Keine Auswahl");
 
-  svgRight.append("text")
-    .attr("x", FIXED_WIDTH / 2).attr("y", 25)
+  svgRight
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", 25)
     .attr("text-anchor", "middle")
     .style("font-size", isMobile ? "14px" : "16px")
     .style("font-weight", "bold")
     .text("Straftaten pro 100.000 Einwohner (2022)");
 
-  svgRight.append("text")
-    .attr("x", FIXED_WIDTH / 2).attr("y", FIXED_HEIGHT - MARGIN + 35)
+  svgRight
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", FIXED_HEIGHT - MARGIN + 35)
     .attr("text-anchor", "middle")
     .style("font-size", isMobile ? "10px" : "12px")
     .style("fill", "#333")
     .text("400 Kreise/Kreisfreie Städte (aufsteigend sortiert)");
 
-  svgLeft.append("text")
-    .attr("x", FIXED_WIDTH / 2).attr("y", FIXED_HEIGHT - MARGIN + 35)
+  svgLeft
+    .append("text")
+    .attr("x", FIXED_WIDTH / 2)
+    .attr("y", FIXED_HEIGHT - MARGIN + 35)
     .attr("text-anchor", "middle")
     .style("font-size", isMobile ? "10px" : "12px")
     .style("fill", "#333")
@@ -280,10 +334,12 @@ function initCharts() {
 
   // Checkboxen gegenseitig ausschließen
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(cb => {
+  checkboxes.forEach((cb) => {
     cb.addEventListener("change", (e) => {
       if (e.target.checked) {
-        checkboxes.forEach(other => { if (other !== e.target) other.checked = false; });
+        checkboxes.forEach((other) => {
+          if (other !== e.target) other.checked = false;
+        });
       }
     });
   });

@@ -1,74 +1,161 @@
 <!doctype html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kriminalitätsatlas</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://rdf.js.org/comunica-browser/versions/v5.2.0/engines/query-sparql-rdfjs-lite/comunica-browser.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.2/browser/n3.min.js"></script>
-  <script src="https://unpkg.com/d3-regression@1.3.10/dist/d3-regression.min.js"></script>
-  <script type="module" src="./main.js"></script>
-</head>
-<body>
-  <div id="regressionControl">
-    <label for="regressionType">Regressionstyp:</label>
-    <select id="regressionType">
-      <option value="linear">Linear (empfohlen, stabil)</option>
-      <option value="exponential">Exponentiell</option>
-      <option value="logarithmic">Logarithmisch</option>
-      <option value="quadratic">Quadratisch</option>
-      <option value="polynomial">Polynomisch (3. Grad)</option>
-      <option value="powerlaw">Potenzgesetz</option>
-      <option value="loess">LOESS (glättend)</option>
-    </select>
-    <div class="regression-hint">Empfohlen und automatisch: Lineare Regression, die anderen funktionieren leider noch nicht stabil.</div>
-  </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Kriminalitätsatlas</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="https://rdf.js.org/comunica-browser/versions/v5.2.0/engines/query-sparql-rdfjs-lite/comunica-browser.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/n3@1.17.2/browser/n3.min.js"></script>
+        <script src="https://unpkg.com/d3-regression@1.3.10/dist/d3-regression.min.js"></script>
+        <script type="module" src="./main.js"></script>
+    </head>
+    <body>
+        <div id="regressionControl">
+            <label for="regressionType">Regressionstyp:</label>
+            <select id="regressionType">
+                <option value="linear">Linear (empfohlen, stabil)</option>
+                <option value="exponential">Exponentiell</option>
+                <option value="logarithmic">Logarithmisch</option>
+                <option value="quadratic">Quadratisch</option>
+                <option value="polynomial">Polynomisch (3. Grad)</option>
+                <option value="powerlaw">Potenzgesetz</option>
+                <option value="loess">LOESS (glättend)</option>
+            </select>
+            <div class="regression-hint">
+                Empfohlen und automatisch: Lineare Regression, die anderen
+                funktionieren leider noch nicht stabil.
+            </div>
+        </div>
 
-  <form id="meinFormular">
-    <fieldset><legend>Armut</legend>
-      <label><input type="checkbox" name="Armut" value="alq"> Arbeitslosenquote (2023, in %)</label><br>
-      <label><input type="checkbox" name="Armut" value="schulden"> Überschuldete Personen (2023, in %)</label>
-    </fieldset>
-    <fieldset><legend>Demographie</legend>
-      <label><input type="checkbox" name="Demographie" value="bev_u18"> unter 18 Jahre (2024, in %)</label><br>
-      <label><input type="checkbox" name="Demographie" value="bev_18_65"> 18–65 Jahre (2024, in %)</label><br>
-      <label><input type="checkbox" name="Demographie" value="bev_ue65"> über 65 Jahre (2024, in %)</label>
-    </fieldset>
-    <fieldset><legend>Wirtschaft</legend>
-      <label><input type="checkbox" name="Wirtschaft" value="erw_bip"> BIP je Erwerbstätige (2023, 1.000 €)</label><br>
-      <label><input type="checkbox" name="Wirtschaft" value="hh_veinK"> Verfügbares Einkommen (2023, 1.000 €)</label>
-    </fieldset>
-    <fieldset><legend>Migration</legend>
-      <label><input type="checkbox" name="Migration" value="bev_ausl"> Ausländeranteil (2024, in %)</label>
-    </fieldset>
-    <fieldset><legend>Vereinswesen</legend>
-      <label><input type="checkbox" name="Vereinswesen" value="mitgl_sportv"> Mitglieder je 100 Einwohner (2023)</label><br>
-      <label><input type="checkbox" name="Vereinswesen" value="ew_sportv"> Vereine je 100.000 Einwohner (2023)</label>
-    </fieldset>
-    <br>
-    <button type="button" id="bestaetigen">Auswahl bestätigen & laden</button>
-  </form>
-  <p>Quelle: <a href="https://www.deutschlandatlas.bund.de/SharedDocs/Downloads/DE/Deutschlandatlas-Daten.html">Deutschlandatlas</a> – Tabellen KRS1222, KRS1224</p>
+        <form id="meinFormular">
+            <fieldset>
+                <legend>Armut</legend>
+                <label
+                    ><input type="checkbox" name="Armut" value="alq" />
+                    Arbeitslosenquote (2023, in %)</label
+                ><br />
+                <label
+                    ><input type="checkbox" name="Armut" value="schulden" />
+                    Überschuldete Personen (2023, in %)</label
+                >
+            </fieldset>
+            <fieldset>
+                <legend>Demographie</legend>
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Demographie"
+                        value="bev_u18"
+                    />
+                    unter 18 Jahre (2024, in %)</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Demographie"
+                        value="bev_18_65"
+                    />
+                    18–65 Jahre (2024, in %)</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Demographie"
+                        value="bev_ue65"
+                    />
+                    über 65 Jahre (2024, in %)</label
+                >
+            </fieldset>
+            <fieldset>
+                <legend>Wirtschaft</legend>
+                <label
+                    ><input type="checkbox" name="Wirtschaft" value="erw_bip" />
+                    BIP je Erwerbstätige (2023, 1.000 €)</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Wirtschaft"
+                        value="hh_veinK"
+                    />
+                    Verfügbares Einkommen (2023, 1.000 €)</label
+                >
+            </fieldset>
+            <fieldset>
+                <legend>Migration</legend>
+                <label
+                    ><input type="checkbox" name="Migration" value="bev_ausl" />
+                    Ausländeranteil (2024, in %)</label
+                >
+            </fieldset>
+            <fieldset>
+                <legend>Vereinswesen</legend>
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Vereinswesen"
+                        value="mitgl_sportv"
+                    />
+                    Mitglieder je 100 Einwohner (2023)</label
+                ><br />
+                <label
+                    ><input
+                        type="checkbox"
+                        name="Vereinswesen"
+                        value="ew_sportv"
+                    />
+                    Vereine je 100.000 Einwohner (2023)</label
+                >
+            </fieldset>
+            <br />
+            <button type="button" id="bestaetigen">
+                Auswahl bestätigen & laden
+            </button>
+        </form>
+        <p>
+            Quelle:
+            <a
+                href="https://www.deutschlandatlas.bund.de/SharedDocs/Downloads/DE/Deutschlandatlas-Daten.html"
+                >Deutschlandatlas</a
+            >
+            – Tabellen KRS1222, KRS1224
+        </p>
 
+        <!-- Container für die beiden Charts (nebeneinander) -->
+        <div id="chartsContainer"></div>
 
-  <!-- Container für die beiden Charts (nebeneinander) -->
-  <div id="chartsContainer"></div>
+        <!-- Tabellen unter den Charts (werden per JS befüllt) -->
+        <div style="display: flex; gap: 20px; margin-top: 20px">
+            <div style="flex: 1">
+                <h3>Gewählter Indikator – Extremwerte</h3>
+                <div
+                    id="indicatorTable"
+                    style="
+                        max-height: 200px;
+                        overflow-y: auto;
+                        border: 1px solid #aaa;
+                        background: white;
+                    "
+                ></div>
+            </div>
+            <div style="flex: 1">
+                <h3>Straftaten pro 100.000 Einwohner (alle Kreise)</h3>
+                <div
+                    id="straftTable"
+                    style="
+                        max-height: 200px;
+                        overflow-y: auto;
+                        border: 1px solid #aaa;
+                        background: white;
+                    "
+                ></div>
+            </div>
+        </div>
 
-  <!-- Tabellen unter den Charts (werden per JS befüllt) -->
-  <div style="display: flex; gap: 20px; margin-top: 20px;">
-    <div style="flex: 1;">
-      <h3>Gewählter Indikator – Extremwerte</h3>
-      <div id="indicatorTable" style="max-height: 200px; overflow-y: auto; border: 1px solid #aaa; background: white;"></div>
-    </div>
-    <div style="flex: 1;">
-      <h3>Straftaten pro 100.000 Einwohner (alle Kreise)</h3>
-      <div id="straftTable" style="max-height: 200px; overflow-y: auto; border: 1px solid #aaa; background: white;"></div>
-    </div>
-  </div>
-
-
-  <p>:D Ein Projekt von Julian Wallper und Juan Rojas, Studenten an der HTWK Leipzig</p>
-  
-</body>
+        <p>
+            :D Ein Projekt von Julian Wallper und Juan Rojas, Studenten an der
+            HTWK Leipzig
+        </p>
+    </body>
 </html>
