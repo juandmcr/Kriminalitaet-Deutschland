@@ -1,7 +1,7 @@
 # Kriminalitäts- & Indikatorenatlas
 
-Für 400 deutsche Kreise werden die Straftatenrate pro 100.000 Einwohner und verschiedene sozioökonomische Indikatoren (Arbeitslosenquote, Jugendanteil, Sportvereinsdichte usw.) in einem Scatterplot dargestellt.  
-Die Daten werden clientseitig aus einer NT‑Datei per SPARQL (Comunica) abgefragt. Eine Regressionslinie (wahlweise linear, exponentiell, LOESS etc.) zeigt den Trend.
+Für 400 deutsche Kreise werden die Straftatenrate pro 100.000 Einwohner und verschiedene sozioökonomische Indikatoren (Arbeitslosenquote, Jugendanteil, Sportvereinsdichte usw.) in einem Scatterplot dargestellt (D3js).  
+Die Daten werden clientseitig aus einer NT‑Datei per SPARQL (Comunica) abgefragt, die Seite bleibt aber statisch, da wir die scripts direkt im HTML hinzufügen anstatt sie mit npm zu installieren. Eine Regressionslinie (wahlweise linear, exponentiell, LOESS etc.) zeigt den Trend.
 
 ![Screenshot](.screenshot.png)
 

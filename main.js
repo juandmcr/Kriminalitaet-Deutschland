@@ -116,7 +116,7 @@ async function fetchIndicatorData(indicator) {
   return data;
 }
 
-// ---------- Tabelle mit allen Daten (scrollbar) ----------
+// ---------- Tabelle mit allen Daten (scrollbar damti es nicht so lang wird) ----------
 function renderFullTable(containerId, data) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -133,7 +133,7 @@ function renderFullTable(containerId, data) {
   container.innerHTML = html;
 }
 
-// ---------- Tabelle mit Extremwerten (je 10 niedrigste + höchste) ----------
+// ---------- Tabelle mit Extremwerten (je 10 niedrigste // höchste) ----------
 function renderExtremesTable(containerId, data, title) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -167,7 +167,7 @@ async function loadData() {
     rdfStore = await loadRdfStore();
     dataRight = await fetchIndicatorData("straft");
     straftSortedCities = dataRight.map((d) => d.city);
-    // Rechte Tabelle mit ALLEN Straftaten-Werten (scrollbar)
+    // Rechte Tabelle mit ALLEN Straftaten-Werten (scrollbar, aus QUERY)
     renderFullTable("straftTable", dataRight);
   } catch (error) {
     console.error("Fehler beim Laden:", error);
@@ -177,7 +177,7 @@ async function loadData() {
   initCharts();
 }
 
-// ---------- Zeichnen der Scatterplots (unverändert) ----------
+// ---------- Zeichnen der Scatterplots ----------
 function drawScatter(
   svg,
   data,
