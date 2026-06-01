@@ -69,7 +69,7 @@ function getRegression(regressionType, data) {
 
 // ---------- RDF Store laden ----------
 async function loadRdfStore() {
-  const response = await fetch("/daten_indikatoren.nt");
+  const response = await fetch("daten_indikatoren.nt");
   const ntText = await response.text();
   const parser = new N3.Parser();
   const store = new N3.Store();
